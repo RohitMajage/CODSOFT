@@ -1,0 +1,31 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+dataset = pd.read_csv('Churn_Modelling.csv')
+
+columns_to_drop = ['RowNumber', 'CustomerId', 'Surname']
+dataset.drop(columns=columns_to_drop, inplace=True)
+
+label_encoder = LabelEncoder()
+dataset['Gender'] = label_encoder.fit_transform(dataset['Gender'])
+dataset = pd.get_dummies(dataset, columns=['Geography'], drop_first=True)
+
+X = dataset.drop('Exited', axis=1)
+y = dataset['Exited']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+numerical_features = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
+scaler = StandardScaler()
+X_train[numerical_features] = scaler.fit_transform(X_train[numerical_features])
+X_test[numerical_features] = scaler.transform(X_test[numerical_features])
+
+model_lr = LogisticRegression(random_state=42)
+model_lr.fit(X_train, y_train)
+predictions_lr = model_lr.predict(X_test)
+
+churn_predictions = pd.DataFrame({'Churn Prediction': predictions_lr == 1})
+print(churn_predictions.tail(25))
