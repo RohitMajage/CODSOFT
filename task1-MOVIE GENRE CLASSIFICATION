@@ -1,0 +1,26 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+
+
+train_df = pd.read_csv('train_data.txt', sep=':::', engine='python', names=['ID', 'TITLE', 'GENRE', 'DESCRIPTION'])
+
+test_df = pd.read_csv('test_data.txt', sep=':::', engine='python', names=['ID', 'TITLE', 'DESCRIPTION'])
+
+X_train, y_train = train_df['DESCRIPTION'], train_df['GENRE']
+X_test = test_df['DESCRIPTION']
+
+tfidf_vectorizer = TfidfVectorizer(max_features=5000)  # Adjust max_features as needed
+X_train_tfidf = tfidf_vectorizer.fit_transform(X_train)
+X_test_tfidf = tfidf_vectorizer.transform(X_test)
+
+naive_bayes_classifier = MultinomialNB()
+naive_bayes_classifier.fit(X_train_tfidf, y_train)
+
+predictions = naive_bayes_classifier.predict(X_test_tfidf)
+
+predictions_df = pd.DataFrame({'ID': test_df['ID'], 'TITLE': test_df['TITLE'], 'PREDICTED_GENRE': predictions})
+
+print(predictions_df)
